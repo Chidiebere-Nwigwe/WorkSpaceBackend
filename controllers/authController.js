@@ -1,3 +1,4 @@
+
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 // handle errors
@@ -35,24 +36,25 @@ const handleErrors = (err) =>{
 // create Token function
 const maxAge  = 3 * 24 * 60 * 60;
 const createToken = (id) =>{
-    return jwt.sign({ id }, 'net ninja secret', {
+    return jwt.sign({ id }, 'workspace secret', {
         expiresIn: maxAge
     })
 }
 
 module.exports.signup_get = (req, res)=> {
-    res.render('signup');
+    res.redirect('http://127.0.0.1:5500/signup.html');
 }
 
 module.exports.login_get = (req, res)=> {
-    res.render('login');
+    res.send('home')
+    //res.redirect('http://127.0.0.1:5500/signin.html');
 }
 
 module.exports.signup_post = async (req, res)=> {
-    const { email, password } = req.body; // destructuring
+    const { name, email, password, role } = req.body; // destructuring
 
     try{
-        const user = await User.create({ email, password });
+        const user = await User.create({ name, email, password, role });
         const token = createToken(user._id);
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
         // 201 status means success
@@ -72,7 +74,7 @@ module.exports.login_post = async (req, res)=> {
         const user = await User.login(email, password);
         const token = createToken(user._id);
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-        res.status(200).json({user: user._id});
+        res.status(200).json({user: user._id, role: user.role});
     }
     catch (err){
         const errors = handleErrors(err);
